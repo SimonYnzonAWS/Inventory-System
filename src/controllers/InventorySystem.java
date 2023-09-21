@@ -18,6 +18,14 @@ public class InventorySystem {
 		foodsList.add(foods);
 	}
 
+	public ArrayList<Drinks> getDrinks() {
+		return drinksList;
+	}
+
+	public ArrayList<Foods> getFoods() {
+		return foodsList;
+	}
+
 	public void addTransaction(Transaction transaction) {
 		transactions.add(transaction);
 	}
