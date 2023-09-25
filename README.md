@@ -10,7 +10,7 @@ This is a simple inventory system implemented in Java using the Eclipse IDE.
 - Search for items based on various criteria.
 - Export and import inventory data.
 
-## Features
+## Members
 
 - Ayan
 - Dean
