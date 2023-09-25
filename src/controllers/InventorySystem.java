@@ -1,18 +1,23 @@
 package controllers;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import models.Drinks;
 import models.Foods;
+import main.Main;
 
 public class InventorySystem {
 	Scanner scan = new Scanner(System.in);
 	private HashMap<String, Drinks> drinksList = new HashMap<>();
 	private HashMap<String, Foods> foodsList = new HashMap<>();
+	private HashMap<String, Transaction> transactionList = new HashMap<>();
 
-	protected void addProduct(String productType) {
+	public void addProduct(String productType) {
 		System.out.print("Enter Product ID: ");
 		int id = scan.nextInt();
 		System.out.print("Enter Product Name: ");
@@ -28,20 +33,24 @@ public class InventorySystem {
 		}
 	}
 
-	protected void addDrinks(Drinks drinks) {
+	public void addDrinks(Drinks drinks) {
 		drinksList.put(drinks.getProductName(), drinks);
 	}
 
-	protected void addFoods(Foods foods) {
+	public void addFoods(Foods foods) {
 		foodsList.put(foods.getProductName(), foods);
 	}
 
-	protected HashMap<String, Drinks> getDrinks() {
+	public HashMap<String, Drinks> getDrinks() {
 		return drinksList;
 	}
 
-	protected HashMap<String, Foods> getFoods() {
+	public HashMap<String, Foods> getFoods() {
 		return foodsList;
+	}
+	
+	public HashMap<String, Transaction> getTransactions() {
+		return transactionList;
 	}
 
 	private Drinks getDrinkData(String inputProduct) {
@@ -51,7 +60,7 @@ public class InventorySystem {
 			throw new NoSuchElementException();
 		}
 	}
-	
+
 	private Foods getFoodsData(String inputProduct) {
 		if (foodsList.containsKey(inputProduct)) {
 			return foodsList.get(inputProduct);
@@ -60,7 +69,7 @@ public class InventorySystem {
 		}
 	}
 
-	protected void productTypeCheckEdit(String inputProduct) {
+	public void productTypeCheckEdit(String inputProduct) {
 		if (getDrinkData(inputProduct) != null) {
 			System.out.println("Enter new Data");
 			System.out.println("Price: ");
@@ -78,17 +87,34 @@ public class InventorySystem {
 
 		}
 	}
-	
-	protected void sellProduct(String name, int quantity) {
+
+	public void sellProduct(String name, int quantity) {
+		LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        String formattedDateTime = currentDateTime.format(formatter);
 		if (getDrinkData(name) != null) {
-			int newStock = getDrinkData(name).getStockQuantity() - quantity;
-			drinksList.put(getDrinkData(name).getProductName(),
-					new Drinks(getDrinkData(name).getProductID(), getDrinkData(name).getProductName(),
-							getDrinkData(name).getUnitPrice(), newStock));
-		}else {
-			int newStock = getFoodsData(name).getStockQuantity() - quantity;
-			foodsList.put(getFoodsData(name).getProductName(),
-					new Foods(getFoodsData(name).getProductID(), getFoodsData(name).getProductName(),
-							getFoodsData(name).getUnitPrice(), newStock));
+			if (getDrinkData(name).getStockQuantity() > quantity) {
+				int newStock = getDrinkData(name).getStockQuantity() - quantity;
+				Drinks data = new Drinks(getDrinkData(name).getProductID(), getDrinkData(name).getProductName(),
+						getDrinkData(name).getUnitPrice(), newStock);
+				drinksList.put(getDrinkData(name).getProductName(), data);
+				transactionList.put(getDrinkData(name).getProductName(),
+						new Transaction(++(Main.transactioniD), data, formattedDateTime, quantity));
+			}else {
+				System.out.println("Out of Stocks");
+			}
+		} else {
+			if (getFoodsData(name).getStockQuantity() > quantity) {
+				int newStock = getFoodsData(name).getStockQuantity() - quantity;
+				Foods data = new Foods(getFoodsData(name).getProductID(), getFoodsData(name).getProductName(),
+						getFoodsData(name).getUnitPrice(), newStock);
+				foodsList.put(getFoodsData(name).getProductName(), data);
+				transactionList.put(getDrinkData(name).getProductName(),
+						new Transaction(++(Main.transactioniD), data, formattedDateTime, quantity));
+			}else {
+				System.out.println("Out of Stocks");
+			}
 		}
 	}
+	
+}
