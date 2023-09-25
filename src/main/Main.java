@@ -9,7 +9,6 @@ import models.Drinks;
 import models.Foods;
 
 public class Main {
-	
 	static Scanner scan = new Scanner(System.in);
 	static InventorySystem invSys = new InventorySystem();
 	static ArrayList<Drinks> drinksList = new ArrayList<>();
@@ -64,7 +63,6 @@ public class Main {
 		scan.close();
 
 	}
-	
 	static void addInventory() {
 		boolean isAdd = true;
 		while (isAdd) {
@@ -114,7 +112,6 @@ public class Main {
 			}
 		}
 	}
-
 	static void sell() {
 		System.out.print("Enter product to be dispatched");
 		String prodName = scan.next();
@@ -122,10 +119,9 @@ public class Main {
 		int quant = scan.nextInt();
 		invSys.sellProduct(prodName, quant);
 	}
-	
 	static void transaction() {
 		System.out.println("Transactions");
-		System.out.println("Date\t\t\tName\t\tQuantity\t\tPrice");
+		System.out.println("Date\t\t\tName\t\tQuantity\tPrice");
 		for (Transaction item : invSys.getTransactions().values()) {
 			System.out.println(item.getTransactionDate()+"\t\t"+item.getProduct().getProductName()+"\t\t"+item.getQuantity()+"\t\t"+item.getProduct().getUnitPrice());
 		}

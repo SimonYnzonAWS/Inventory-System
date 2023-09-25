@@ -1,6 +1,5 @@
 package models;
 
-
 public class Foods extends Product {
 
 	public Foods(int productID, String productName, double unitPrice, int stockQuantity) {
