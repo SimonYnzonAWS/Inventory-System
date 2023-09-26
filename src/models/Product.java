@@ -1,6 +1,6 @@
 package models;
 
-public abstract class Product {
+public class Product {
     private int productID;
     private String productName;
     public double unitPrice;
