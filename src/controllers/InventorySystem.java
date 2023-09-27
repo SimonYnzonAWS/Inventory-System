@@ -1,44 +1,38 @@
 package controllers;
-
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import models.Drinks;
 import models.Foods;
-import main.Main;
+import models.Product;
+import models.Transaction;
 
 public class InventorySystem {
 	Scanner scan = new Scanner(System.in);
+	
 	private HashMap<String, Drinks> drinksList = new HashMap<>();
 	private HashMap<String, Foods> foodsList = new HashMap<>();
-	private HashMap<String, Transaction> transactionList = new HashMap<>();
+	private ArrayList<Transaction> transaction = new ArrayList<>();
 
-	public void addProduct(String productType) {
-		System.out.print("Enter Product ID: ");
-		int id = scan.nextInt();
-		System.out.print("Enter Product Name: ");
-		String name = scan.next();
-		System.out.print("Enter Price: ");
-		double price = scan.nextDouble();
-		System.out.print("Enter Quantiy: ");
-		int quantity = scan.nextInt();
+	public static int productId = 0;
+	public static int transactionId = 0;
+
+	public void addProduct(String productType, Product product) {
+
 		if (productType.equals("drinks")) {
-			drinksList.put(name, new Drinks(id, name, price, quantity));
+			drinksList.put(product.getProductName().toLowerCase(), (Drinks)product);
 		} else {
-			foodsList.put(name, new Foods(id, name, price, quantity));
+			foodsList.put(product.getProductName().toLowerCase(), (Foods)product);
 		}
 	}
 
-	public void addDrinks(Drinks drinks) {
-		drinksList.put(drinks.getProductName(), drinks);
+	public void addDrinks(Drinks drink) {
+		drinksList.put(drink.getProductName().toLowerCase(), drink);
 	}
 
-	public void addFoods(Foods foods) {
-		foodsList.put(foods.getProductName(), foods);
+	public void addFoods(Foods food) {
+		foodsList.put(food.getProductName().toLowerCase(), food);
 	}
 
 	public HashMap<String, Drinks> getDrinks() {
@@ -48,21 +42,20 @@ public class InventorySystem {
 	public HashMap<String, Foods> getFoods() {
 		return foodsList;
 	}
-	
-	public HashMap<String, Transaction> getTransactions() {
-		return transactionList;
+	public ArrayList<Transaction> getTransactions(){
+		return transaction;
 	}
 
-	private Drinks getDrinkData(String inputProduct) {
-		if (drinksList.containsKey(inputProduct)) {
+	public Drinks getDrinkData(String inputProduct) throws NoSuchElementException {
+		if (drinksList.containsKey(inputProduct.toLowerCase())) {
 			return drinksList.get(inputProduct);
 		} else {
 			throw new NoSuchElementException();
 		}
 	}
-
-	private Foods getFoodsData(String inputProduct) {
-		if (foodsList.containsKey(inputProduct)) {
+	
+	public Foods getFoodsData(String inputProduct) throws NoSuchElementException {
+		if (foodsList.containsKey(inputProduct.toLowerCase())) {
 			return foodsList.get(inputProduct);
 		} else {
 			throw new NoSuchElementException();
@@ -70,51 +63,56 @@ public class InventorySystem {
 	}
 
 	public void productTypeCheckEdit(String inputProduct) {
-		if (getDrinkData(inputProduct) != null) {
-			System.out.println("Enter new Data");
-			System.out.println("Price: ");
-			double price = scan.nextDouble();
-			drinksList.put(getDrinkData(inputProduct).getProductName(),
-					new Drinks(getDrinkData(inputProduct).getProductID(), getDrinkData(inputProduct).getProductName(),
-							price, getDrinkData(inputProduct).getStockQuantity()));
-		} else {
-			System.out.println("Enter new Data");
-			System.out.println("Price: ");
-			double price = scan.nextDouble();
-			foodsList.put(getFoodsData(inputProduct).getProductName(),
-					new Foods(getFoodsData(inputProduct).getProductID(), getFoodsData(inputProduct).getProductName(),
-							price, getFoodsData(inputProduct).getStockQuantity()));
+		Product product = null;
+		
+		try{
+			product = (Product)getDrinkData(inputProduct);
+		}
+		catch(NoSuchElementException e){
+			System.out.println(e.getMessage());
+		}
+		if (product == null) {
+			try{ product = (Product)getFoodsData(inputProduct); }
+			catch(NoSuchElementException e){ System.out.println(e.getMessage());}		
+		} 
 
+		if(product != null){
+			System.out.println("Enter new Data");
+			System.out.println("Price: ");
+			double price = scan.nextDouble();
+			product.setUnitPrice(price);
 		}
 	}
-
+	
 	public void sellProduct(String name, int quantity) {
-		LocalDateTime currentDateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        String formattedDateTime = currentDateTime.format(formatter);
-		if (getDrinkData(name) != null) {
-			if (getDrinkData(name).getStockQuantity() > quantity) {
-				int newStock = getDrinkData(name).getStockQuantity() - quantity;
-				Drinks data = new Drinks(getDrinkData(name).getProductID(), getDrinkData(name).getProductName(),
-						getDrinkData(name).getUnitPrice(), newStock);
-				drinksList.put(getDrinkData(name).getProductName(), data);
-				transactionList.put(getDrinkData(name).getProductName(),
-						new Transaction(++(Main.transactioniD), data, formattedDateTime, quantity));
-			}else {
-				System.out.println("Out of Stocks");
-			}
-		} else {
-			if (getFoodsData(name).getStockQuantity() > quantity) {
-				int newStock = getFoodsData(name).getStockQuantity() - quantity;
-				Foods data = new Foods(getFoodsData(name).getProductID(), getFoodsData(name).getProductName(),
-						getFoodsData(name).getUnitPrice(), newStock);
-				foodsList.put(getFoodsData(name).getProductName(), data);
-				transactionList.put(getDrinkData(name).getProductName(),
-						new Transaction(++(Main.transactioniD), data, formattedDateTime, quantity));
-			}else {
-				System.out.println("Out of Stocks");
-			}
+		Product product = null;
+		
+		try{ product = (Product)getDrinkData(name); }
+		catch(NoSuchElementException e){ e.getMessage(); }
+
+		if(product == null){
+			try{ product = (Product)getFoodsData(name); }
+			catch(NoSuchElementException e){ System.out.println(e.getMessage()); }
+
+		}
+
+		if(product != null){
+			int currStock = product.getStockQuantity();
+			if(quantity <= currStock)
+				product.setStockQuantity(currStock - quantity);
+			else
+				System.out.println("Can't sell " + quantity + " " + product.getProductName() + " due to low stock.");
+			transaction.add(new Transaction(++transactionId, product.getProductName(), Transaction.SALE_STRING, quantity, product.getUnitPrice()));
+		}	
+	}
+	public void displayTransactions(){
+		System.out.println("Transactions: \n");	
+		
+		for(Transaction t : transaction){
+			System.out.println("Product: " + t.getProductName() + "\t\tQuantity: " + t.getQuantity() + "\t" +
+			 "Price: " + t.getUnitPrice() + "\t" + "Transaction: " +t.getTransactionType() + "\t" + "Date: " + t.getTransactionDate());
 		}
 	}
+
 	
 }

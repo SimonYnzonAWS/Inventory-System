@@ -25,10 +25,23 @@ public class Product {
 	public Product(int productID, String productName, double unitPrice, int stockQuantity) {
         this.productID = productID;
         this.productName = productName;
-        this.unitPrice = unitPrice;
-        this.stockQuantity = stockQuantity;
+        setStockQuantity(stockQuantity);
+        setUnitPrice(unitPrice);
+    }
+	
+	public void setProductName(String productName) {
+        this.productName = productName;
     }
 
+    public void setUnitPrice(double unitPrice) {
+        if(unitPrice > 0)
+            this.unitPrice = unitPrice;
+    }
+
+    public void setStockQuantity(int stockQuantity) {
+        if(stockQuantity > 0)
+            this.stockQuantity = stockQuantity;
+    }
     public String toString() {
         return productName + " (ID: " + productID + ")";
     }
