@@ -1,30 +1,27 @@
 package main;
+import models.*;
+import controllers.*;
 
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import controllers.InventorySystem;
-import controllers.Transaction;
-import models.Drinks;
-import models.Foods;
-
 public class Main {
-	static Scanner scan = new Scanner(System.in);
-	static InventorySystem invSys = new InventorySystem();
-	static ArrayList<Drinks> drinksList = new ArrayList<>();
-	static ArrayList<Foods> foodsList = new ArrayList<>();
-	public static int transactioniD = 0;
 
+	private static Scanner scan = new Scanner(System.in);
+	private static InventorySystem invSys = new InventorySystem();
+	private static ArrayList<Drinks> drinksList = new ArrayList<>();
+	private static ArrayList<Foods> foodsList = new ArrayList<>();
+	
 	public static void main(String[] args) {
 
 		boolean useApp = true;
-		drinksList.add(new Drinks(1, "Dew", 50.0, 100));
-		drinksList.add(new Drinks(2, "Coke", 20.0, 100));
-		drinksList.add(new Drinks(3, "Sprite", 30.0, 100));
+		drinksList.add(new Drinks(++(InventorySystem.productId), "Gatorade", 50.0, 100));
+		drinksList.add(new Drinks(++(InventorySystem.productId), "Coke", 20.0, 100));
+		drinksList.add(new Drinks(++(InventorySystem.productId), "Sprite", 30.0, 100));
 
-		foodsList.add(new Foods(1, "Onigiri", 100.0, 100));
-		foodsList.add(new Foods(2, "Noodles", 10.0, 100));
-		foodsList.add(new Foods(3, "Can", 34.0, 100));
+		foodsList.add(new Foods(++(InventorySystem.productId), "Onigiri", 100.0, 100));
+		foodsList.add(new Foods(++(InventorySystem.productId), "Noodles", 10.0, 100));
+		foodsList.add(new Foods(++(InventorySystem.productId), "Can", 34.0, 100));
 
 		for (Drinks item : drinksList) {
 			invSys.addDrinks(item);
@@ -35,8 +32,8 @@ public class Main {
 		}
 
 		while (useApp) {
-			System.out.print(
-					"Select Option\n[1] Add Inventory\n[2] View Inventory\n[3] Edit Inventory\n[4] Sell\n[5] Transactions\n[6] Exit\n");
+			System.out.print("\n1 Add inventory\n" + "2 View inventory \n"
+					+ "3 Edit inventory\n" + "4 Sell\n5 Display transaction history\n0 to Exit\n\nEnter choice: ");
 			String selection = scan.next();
 			switch (selection) {
 			case "1":
@@ -52,55 +49,72 @@ public class Main {
 				sell();
 				break;
 			case "5":
-				transaction();
+				displayTransactions();
 				break;
-			case "6":
+			case "0":
 				useApp = false;
-				break;
+				break;	
 			}
 		}
 
 		scan.close();
 
 	}
-	static void addInventory() {
+
+	private static void addInventory() {
 		boolean isAdd = true;
+		String name = null;
+		double price =  -1;
+		int quantity = -1;
 		while (isAdd) {
-			System.out.println("Select Add menu Option\n[D] Add Drinks\n[F] Add Foods\n[E] Exit\n");
+			System.out.println("\nEnter Menu\nD Drinks\nF Foods\nE Exit");
 			String selection = scan.next().toUpperCase();
-			switch (selection) {
-			case "D":
-				invSys.addProduct("drinks");
-				break;
-			case "F":
-				invSys.addProduct("Foods");
-				break;
-			case "E":
-				isAdd = false;
-				break;
+			
+			try{
+				System.out.print("Enter Product Name: ");
+				name = scan.next();
+				System.out.print("Enter Price: ");
+				price = scan.nextDouble();
+				System.out.print("Enter Quantiy: ");
+				quantity = scan.nextInt();
 			}
+			catch(Exception e ){
+				System.out.println("Invalid input");
+			}
+			if(name != null || price != -1 || quantity != -1){
+				Product product = new Product(++(InventorySystem.productId), name, price, quantity);
+
+				switch (selection) {
+				case "D":
+					invSys.addProduct("drinks", product);
+					break;
+				case "F":
+					invSys.addProduct("foods", product);
+					break;
+				case "E":
+					isAdd = false;
+					break;
+				}
+			}
+			
 		}
 	}
 
-	static void viewInventory() {
-		System.out.println("Foods");
-		System.out.println("ID\t\tName\t\tPrice\t\tQuantity");
+	private static void viewInventory() {
+		System.out.print("Products in the inventory: \n\n");
 		for (Foods item : invSys.getFoods().values()) {
-			System.out.println(item.getProductID() + "\t\t" + item.getProductName() + "\t\t" + item.getUnitPrice()
-					+ "\t\t" + item.getStockQuantity());
+			System.out.println("Product ID: " + item.getProductID() + "\tName: " + item.getProductName()
+					+ "\tUnit Price: " + item.getUnitPrice() + "\tQuantity Left: " + item.getStockQuantity());
 		}
-
-		System.out.print("Drinks\n");
-		System.out.println("ID\t\tName\t\tPrice\t\tQuantity");
 		for (Drinks item : invSys.getDrinks().values()) {
-			System.out.println(item.getProductID() + "\t\t" + item.getProductName() + "\t\t" + item.getUnitPrice()
-					+ "\t\t" + item.getStockQuantity());
+			System.out.println("Product ID: " + item.getProductID() + "\tName: " + item.getProductName()
+					+ "\tUnit Price: " + item.getUnitPrice() + "\tQuantity Left: " + item.getStockQuantity());
 		}
 
 		System.out.println();
 	}
 
-	static void editInventory() {
+	private static void editInventory() {
 		boolean isEdit = true;
 		while (isEdit) {
 			System.out.print("Enter product name you want to update, select E to Home");
@@ -108,24 +122,25 @@ public class Main {
 			if (!selection.toLowerCase().equals("e")) {
 				invSys.productTypeCheckEdit(selection);
 			} else {
-				isEdit = false;
+				isEdit=false;
 			}
 		}
 	}
-	static void sell() {
-		System.out.print("Enter product to be dispatched");
-		String prodName = scan.next();
-		System.out.print("Enter quantity to be dispatched: ");
-		int quant = scan.nextInt();
-		invSys.sellProduct(prodName, quant);
-	}
-	static void transaction() {
-		System.out.println("Transactions");
-		System.out.println("Date\t\t\tName\t\tQuantity\tPrice");
-		for (Transaction item : invSys.getTransactions().values()) {
-			System.out.println(item.getTransactionDate()+"\t\t"+item.getProduct().getProductName()+"\t\t"+item.getQuantity()+"\t\t"+item.getProduct().getUnitPrice());
-		}
-		System.out.println("\n");
-	}
+	
+	private static void sell() {
+		try {
+			System.out.print("Enter sold product: ");
+			String prodName = scan.next();
+			System.out.print("Enter quantity: ");
+			int quant = scan.nextInt();
 
+			invSys.sellProduct(prodName, quant);	
+		} catch (Exception e) {
+			System.out.println("Invalid input.");	
+		}	
+	}
+	
+	private static void displayTransactions(){
+		invSys.displayTransactions();
+	}
 }
